@@ -91,7 +91,7 @@ Use Cases
   HAVING
     COUNT(*) > :threshold;
 5. Database Design-
-Each domain follows a relational database design, ensuring normalized data structures. The design includes **primary keys**, **foreign keys**, and **constraints** to maintain data integrity and improve query performance.
+Each domain follows a relational database design, ensuring normalized data structures. The design includes primary keys, foreign keys, and constraints to maintain data integrity and improve query performance.
 - Stocks and Transactions: One-to-many relationship between stocks and transactions.
 - Patients and Visits: One-to-many relationship between patients and visits, and visits and diagnoses.
 
