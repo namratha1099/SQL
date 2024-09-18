@@ -1,1 +1,122 @@
-### This file
+This file contains some SQL queries related to financial domain.
+1. Calculate Total Revenue by Month:
+SELECT 
+    DATE_TRUNC('month', transaction_date) AS month, 
+    SUM(amount) AS total_revenue
+FROM 
+    sales_transactions
+WHERE 
+    transaction_type = 'sale'
+GROUP BY 
+    DATE_TRUNC('month', transaction_date)
+ORDER BY 
+    month;
+2. Identify Top 5 Customers by Revenue:
+SELECT 
+    customer_id, 
+    SUM(amount) AS total_revenue
+FROM 
+    sales_transactions
+WHERE 
+    transaction_type = 'sale'
+GROUP BY 
+    customer_id
+ORDER BY 
+    total_revenue DESC
+LIMIT 5;
+3. Calculate Monthly Profit:
+SELECT 
+    DATE_TRUNC('month', transaction_date) AS month, 
+    SUM(CASE WHEN transaction_type = 'sale' THEN amount ELSE 0 END) AS total_revenue,
+    SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) AS total_expense,
+    SUM(CASE WHEN transaction_type = 'sale' THEN amount ELSE 0 END) - 
+    SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) AS total_profit
+FROM 
+    financial_transactions
+GROUP BY 
+    DATE_TRUNC('month', transaction_date)
+ORDER BY 
+    month;
+4. Analyze Revenue Growth Rate:
+WITH monthly_revenue AS (
+    SELECT 
+        DATE_TRUNC('month', transaction_date) AS month, 
+        SUM(amount) AS total_revenue
+    FROM 
+        sales_transactions
+    WHERE 
+        transaction_type = 'sale'
+    GROUP BY 
+        DATE_TRUNC('month', transaction_date)
+)
+SELECT 
+    month,
+    total_revenue,
+    LAG(total_revenue, 1) OVER (ORDER BY month) AS previous_month_revenue,
+    ((total_revenue - LAG(total_revenue, 1) OVER (ORDER BY month)) / 
+    LAG(total_revenue, 1) OVER (ORDER BY month)) * 100 AS revenue_growth_percentage
+FROM 
+    monthly_revenue
+ORDER BY 
+    month;
+5. Average Expense per Department:
+SELECT 
+    department_id, 
+    AVG(amount) AS average_expense
+FROM 
+    expense_transactions
+WHERE 
+    transaction_type = 'expense'
+GROUP BY 
+    department_id
+ORDER BY 
+    average_expense DESC;
+6. Detect Transactions Exceeding Budget:
+SELECT 
+    transaction_id, 
+    department_id, 
+    amount, 
+    budget
+FROM 
+    financial_transactions ft
+JOIN 
+    department_budgets db ON ft.department_id = db.department_id
+WHERE 
+    transaction_type = 'expense'
+    AND amount > db.budget;
+
+7. Financial Ratio Analysis (Quick Ratio):
+SELECT 
+    company_id,
+    (current_assets - inventory) / current_liabilities AS quick_ratio
+FROM 
+    balance_sheet
+WHERE 
+    fiscal_year = '2023'
+ORDER BY 
+    quick_ratio DESC;
+8. Calculate Rolling 3-Month Average Revenue:
+WITH monthly_revenue AS (
+    SELECT 
+        DATE_TRUNC('month', transaction_date) AS month, 
+        SUM(amount) AS total_revenue
+    FROM 
+        sales_transactions
+    WHERE 
+        transaction_type = 'sale'
+    GROUP BY 
+        DATE_TRUNC('month', transaction_date)
+)
+SELECT 
+    month, 
+    total_revenue,
+    AVG(total_revenue) OVER (
+        ORDER BY month 
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ) AS rolling_3_month_avg_revenue
+FROM 
+    monthly_revenue
+ORDER BY 
+    month;
+
+
